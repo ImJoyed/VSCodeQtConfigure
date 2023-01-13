@@ -23,6 +23,8 @@
 
 * Command: `QtConfigure : Open Qt Assistant` 打开 Qt Assistant
 
+* Command: `QtConfigure : Set X Server Address`（个人在Linux的code-server上使用的功能，未进行充足的测试） 设置X Server地址，设置后可在指定地址打开GUI（Qt Designer、Qt Assistant和你编译的程序），需要有X Server配合使用
+
 ### CMake
 
 * 需要配合 VSCode [CMake](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools)  扩展使用
