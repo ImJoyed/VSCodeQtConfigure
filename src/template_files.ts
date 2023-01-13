@@ -393,6 +393,10 @@ export const CMAKE_LAUNCH_JSON = "\n\
                 {\n\
                     \"name\": \"PATH\",\n\
                     \"value\": \"__QT_KIT_DIR__/bin\"\n\
+                },\n\
+                {\n\
+                    \"name\": \"DISPLAY\",\n\
+                    \"value\": \"__X_SERVER_ADDRESS__\"\n\
                 }\n\
             ],\n\
             \"externalConsole\": false,\n\

@@ -13,7 +13,8 @@
         "onCommand:qtConfigure.newQtProject",
         "onCommand:qtConfigure.setQtDir",
         "onCommand:qtConfigure.openQtDesigner",
-        "onCommand:qtConfigure.openQtAssistant"
+        "onCommand:qtConfigure.openQtAssistant",
+        "onCommand:qtConfigure.setXServerAddress"
     ],
     "publisher": "vector-wlc",
     "keywords": ["qt", "qtconfigure"],
@@ -36,6 +37,9 @@
         }, {
             "command": "qtConfigure.openQtAssistant",
             "title": "QtConfigure : Open Qt Assistant"
+        }, {
+            "command": "qtConfigure.setXServerAddress",
+            "title": "QtConfigure : Set X Server Address"
         }],
 
         "configuration": {
@@ -61,6 +65,11 @@
                     "type": "string",
                     "default": "",
                     "description": "Qt 套件路径 (Qt Kit path)"
+                },
+                "qtConfigure.xServerAddress": {
+                    "type": "string",
+                    "default": "127.0.0.1:0.0",
+                    "description": "X Server服务的地址，可以通过设置X Server的地址在远端启动GUI（主要用于在浏览器中访问code-server进行开发Qt项目）"
                 }
             }
         }

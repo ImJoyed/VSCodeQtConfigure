@@ -9,9 +9,51 @@ import * as vscode from 'vscode';
 import * as fs from "fs";
 import * as template_files from "./template_files";
 import * as os from "os"
+import { prototype } from 'events';
+import { parse } from 'path';
+
+// {
+//     "version": "0.2.0",
+//     "configurations": [
+//         {
+//             "name": "QtBuild",
+//             "type": "cppdbg",
+//             "request": "launch",
+//             "program": "${command:cmake.launchTargetPath}",
+//             "args": [],
+//             "stopAtEntry": false,
+//             "cwd": "${workspaceRoot}",
+//             "environment": [
+//                 {
+//                     "name": "PATH",
+//                     "value": "/home/joyed/Qt5.12.12/5.12.12/gcc_64/bin"
+//                 },
+//                 {
+//                     "name": "DISPLAY",
+//                     "value": "127.0.0.1:0.0"
+//                 }
+//             ],
+//             "externalConsole": false,
+//         }
+//     ]
+// }
+
+interface envObj {
+    name: string,
+    value: string
+}
+
+interface configurationObj {
+    environment: envObj[]
+}
+
+interface LaunchObj {
+    configurations: configurationObj[]
+};
 
 export class QtConfigurator {
     private qtDir: string;
+    private xServerAddress: string;
     private isMsvc: boolean;
     private projectDir: string;
     private projectName: string;
@@ -33,6 +75,7 @@ export class QtConfigurator {
 
     constructor() {
         this.qtDir = "";
+        this.xServerAddress = "127.0.0.1:0.0";
         this.isMsvc = true;
         this.projectDir = "";
         this.projectName = "";
@@ -89,6 +132,28 @@ export class QtConfigurator {
 
     }
 
+    public setXServerAddress(xServerAddress: string): void {
+        this.xServerAddress = xServerAddress;
+        vscode.workspace.getConfiguration().update('qtConfigure.xServerAddress', this.xServerAddress, false);
+
+        let _content: string = "";
+        if(this.projectDir.length === 0) {
+            this.projectDir = vscode.workspace.workspaceFolders![0].uri.fsPath;
+        }
+        _content = this.readFile(this.projectDir + "/.vscode/launch.json");
+        let displayIndex: number = _content.indexOf('"DISPLAY"');
+        let lastContent: string = _content.substring(displayIndex);
+        let displayValueIndex: number = lastContent.indexOf('"value"');
+        lastContent = lastContent.substring(displayValueIndex + 7);
+        let addressStartIndex: number = lastContent.indexOf('"');
+        lastContent = lastContent.substring(addressStartIndex);
+        let addressEndIndex: number = lastContent.indexOf('"\n');
+        let valueStr: string = lastContent.substring(0, addressEndIndex + 1);
+
+        _content = _content.replace(valueStr, '"' + this.xServerAddress + '"');
+        this.writeFile(this.projectDir + "/.vscode/launch.json", _content);
+    }
+
     public getQtKitDirList(): string[] {
         return this.qtKitDirList;
     }
@@ -129,6 +194,10 @@ export class QtConfigurator {
                 vscode.window.showErrorMessage("Write File : " + fileName + " Failed");
             }
         });
+    }
+
+    private readFile(fileName: string): string {
+        return fs.readFileSync(fileName, 'utf-8');
     }
 
     public createQtConfigureFiles() {
@@ -172,6 +241,13 @@ export class QtConfigurator {
             this.qtTerminal = vscode.window.createTerminal("qtTerminal", this.isWin32 ? "cmd" : "bash");
         }
 
+        if(this.isLinux) {
+            let _xServerAddress = new String(vscode.workspace.getConfiguration().get('qtConfigure.xServerAddress'));
+            if(_xServerAddress.length !== 0) {
+                this.qtTerminal.sendText("export DISPLAY=" + _xServerAddress);
+            }
+        }
+
         if (this.projectName.length === 0) { // 寻找 projectName
             this.projectDir = vscode.workspace.workspaceFolders![0].uri.fsPath;
             let projectFileList = fs.readdirSync(this.projectDir + "/src");
@@ -200,6 +276,13 @@ export class QtConfigurator {
         }
         if (this.qtTerminal === undefined) {
             this.qtTerminal = vscode.window.createTerminal("qtTerminal", this.isWin32 ? "cmd" : "bash");
+        }
+
+        if(this.isLinux) {
+            let _xServerAddress = new String(vscode.workspace.getConfiguration().get('qtConfigure.xServerAddress'));
+            if(_xServerAddress.length !== 0) {
+                this.qtTerminal.sendText("export DISPLAY=" + _xServerAddress);
+            }
         }
 
         this.qtTerminal.sendText(_qtSelectedKitDir + "/bin/assistant" + this.execSuffix + this.cmdSuffix);
@@ -361,6 +444,8 @@ export class QtConfigurator {
     private createCMakeLaunchJson() {
         let content = template_files.CMAKE_LAUNCH_JSON;
         content = this.strReplaceAll(content, "__QT_KIT_DIR__", this.qtSelectedKitDir);
+        let _xServerAddress = new String(vscode.workspace.getConfiguration().get('qtConfigure.xServerAddress'));
+        content = this.strReplaceAll(content, "__X_SERVER_ADDRESS__", _xServerAddress.toString());
         this.writeFile(this.projectDir + "/.vscode/launch.json", content);
     }
 }

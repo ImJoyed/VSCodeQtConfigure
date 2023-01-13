@@ -67,6 +67,18 @@ function getQtDir() {
 	});
 }
 
+function getXServerAddress() {
+	let inputBox = vscode.window.createInputBox();
+	inputBox.show();
+	inputBox.title = "输入X Server地址 ,默认为127.0.0.1:0.0(Please enter X Server address, default value is 127.0.0.1:0.0)";
+	let value: string;
+	inputBox.onDidAccept((e) => {
+		value = inputBox.value;
+		qtConfigurator.setXServerAddress(value);
+		inputBox.hide();
+	});
+}
+
 function selectQtUi() {
 	const options: vscode.QuickPickOptions = {
 		title: "请选择是否带有 UI 文件 (Please select whether there is UI file)"
@@ -140,6 +152,10 @@ export function activate(context: vscode.ExtensionContext) {
 		getQtDir();
 	});
 
+	let setXServerAddress = vscode.commands.registerCommand('qtConfigure.setXServerAddress', () => {
+		getXServerAddress();
+	});
+	
 	let openQtDesigner = vscode.commands.registerCommand('qtConfigure.openQtDesigner', () => {
 		qtConfigurator.openDesigner();
 	});
@@ -156,6 +172,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(newQtProject);
 	context.subscriptions.push(setQtDir);
+	context.subscriptions.push(setXServerAddress);
 	context.subscriptions.push(closeTerminal);
 	context.subscriptions.push(openQtDesigner);
 	context.subscriptions.push(openQtAssistant);
